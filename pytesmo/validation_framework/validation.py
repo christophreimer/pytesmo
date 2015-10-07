@@ -77,8 +77,9 @@ class Validation(object):
     """
 
     def __init__(self, datasets, temporal_matcher, metrics_calculator,
-                 data_prep=None, period=None, scaling='lin_cdf_match',
-                 scale_to_other=False, cell_based_jobs=True):
+                 data_prep=None, data_post=None, period=None,
+                 scaling='lin_cdf_match', scale_to_other=False,
+                 cell_based_jobs=True):
         """
         Initialize parameters.
         """
@@ -86,6 +87,7 @@ class Validation(object):
 
         self.temp_matching = temporal_matcher.match
         self.calc_metrics = metrics_calculator.calc_metrics
+        self.data_postproc = data_post
 
         self.scaling = scaling
         self.scale_to_index = 0
@@ -171,6 +173,7 @@ class Validation(object):
                 continue
 
             # compute results for each combination of (ref, other) columns
+            rescaled_data = {}
             for result in result_names:
                 ref_col = result[0].split('.')[1]
                 other_col = result[1].split('.')[1]
@@ -192,6 +195,7 @@ class Validation(object):
                     try:
                         data = scaling.scale(
                             data, method=self.scaling, reference_index=self.scale_to_index)
+                        rescaled_data[other_name] = data
                     except ValueError:
                         continue
 
@@ -209,6 +213,9 @@ class Validation(object):
                     entries.append(result[field_name][0])
                 compact_results[key][field_name] = \
                     np.array(entries, dtype=results[key][0][field_name].dtype)
+
+        if self.data_postproc is not None:
+            self.data_postproc(compact_results, rescaled_data)
 
         return compact_results
 

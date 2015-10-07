@@ -171,7 +171,8 @@ class DataManager(object):
             return None
 
         if self.period is not None:
-            ref_df = ref_df[self.period[0]:self.period[1]]
+            ref_df = ref_df[((ref_df.index >= self.period[0]) &
+                             (ref_df.index <= self.period[1]))]
 
         if len(ref_df) == 0:
             return None
@@ -222,7 +223,8 @@ class DataManager(object):
             return None
 
         if self.period is not None:
-            other_df = other_df[self.period[0]:self.period[1]]
+            other_df = other_df[((other_df.index >= self.period[0]) &
+                                 (other_df.index <= self.period[1]))]
 
         if len(other_df) == 0:
             return None
